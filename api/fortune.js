@@ -62,7 +62,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         // 👇 建议先用 1.5-pro，这是目前中转商支持最好的模型
-        model: "gemini-2.5-flash-preview-09-2025", 
+        model: "gemini-3-pro-preview", 
         messages: [
           {
             role: "user",
