@@ -1,10 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserData, Gender, PlanLevel } from './types';
 import { generateFortune } from './services/geminiService';
 import LoadingRitual from './components/LoadingRitual';
 import ResultDisplay from './components/ResultDisplay';
 import PricingPlans from './components/PricingPlans';
 import LegalModal from './components/LegalModal';
+import { CHECKOUT_URLS } from './constants'; // Import the URLs
+
+// Lemon Squeezy Type Definitions
+declare global {
+  interface Window {
+    createLemonSqueezy: () => void;
+    LemonSqueezy: {
+      Url: {
+        Open: (url: string) => void;
+      };
+      Setup: (options: {
+        eventHandler: (event: { event: string; data: any }) => void;
+      }) => void;
+    };
+  }
+}
 
 enum AppStep {
   INPUT = 'INPUT',
@@ -31,6 +47,20 @@ const App: React.FC = () => {
   // Legal Modal State
   const [legalModalType, setLegalModalType] = useState<'terms' | 'privacy' | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // Lemon Squeezy Setup
+  useEffect(() => {
+    if (window.LemonSqueezy) {
+      window.LemonSqueezy.Setup({
+        eventHandler: (event) => {
+          if (event.event === 'PaymentSuccess') {
+            console.log('Payment Successful', event.data);
+            handlePaymentSuccess();
+          }
+        },
+      });
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -67,9 +97,23 @@ const App: React.FC = () => {
     }
   };
 
-  const processPayment = async () => {
-    if (!agreedToTerms) return;
-    
+  const processLemonSqueezyPayment = () => {
+     if (!agreedToTerms) return;
+
+     // Select the correct URL based on the user's choice
+     const checkoutUrl = selectedPlan === PlanLevel.PREMIUM 
+        ? CHECKOUT_URLS[PlanLevel.PREMIUM]
+        : CHECKOUT_URLS[PlanLevel.STANDARD];
+
+     if (window.LemonSqueezy) {
+        window.createLemonSqueezy();
+        window.LemonSqueezy.Url.Open(checkoutUrl);
+     } else {
+        alert("支付組件加載中，請稍後再試。");
+     }
+  };
+
+  const handlePaymentSuccess = async () => {
     setStep(AppStep.LOADING);
     try {
       const result = await generateFortune(userData, selectedPlan);
@@ -278,33 +322,30 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="space-y-4">
-                    {/* Lemon Squeezy Style Button */}
+                    {/* Lemon Squeezy Button */}
                     <button 
-                        onClick={processPayment}
+                        onClick={processLemonSqueezyPayment}
                         disabled={!agreedToTerms}
                         className={`w-full py-4 font-bold flex items-center justify-center space-x-2 transition-colors rounded-sm
                             ${agreedToTerms 
-                                ? 'bg-[#7047EB] hover:bg-[#6037DB] text-white cursor-pointer' 
+                                ? 'bg-[#7047EB] hover:bg-[#6037DB] text-white cursor-pointer shadow-[0_0_15px_rgba(112,71,235,0.4)]' 
                                 : 'bg-stone-700 text-stone-500 cursor-not-allowed opacity-50'}`}
                     >
                          <span>Pay with Lemon Squeezy</span>
                     </button>
                     
-                    {/* Stripe Style */}
+                    {/* Mock Direct Payment for Demo */}
                     <button 
-                        onClick={processPayment}
+                        onClick={handlePaymentSuccess}
                         disabled={!agreedToTerms}
-                        className={`w-full py-4 font-bold flex items-center justify-center space-x-2 transition-colors rounded-sm
+                        className={`w-full py-3 text-sm font-bold flex items-center justify-center space-x-2 transition-colors rounded-sm border
                             ${agreedToTerms 
-                                ? 'bg-[#333] hover:bg-[#444] text-white cursor-pointer' 
-                                : 'bg-stone-700 text-stone-500 cursor-not-allowed opacity-50'}`}
+                                ? 'bg-transparent border-stone-500 text-stone-400 hover:text-white hover:border-white' 
+                                : 'border-stone-800 text-stone-700 cursor-not-allowed'}`}
                     >
-                         <span>Credit Card (Stripe)</span>
+                         <span>模擬支付成功 (演示用)</span>
                     </button>
 
-                    <p className="text-[10px] text-stone-600 text-center mt-6">
-                        *此為演示環境，點擊按鈕將直接模擬支付成功。
-                    </p>
                     <button 
                         onClick={() => setStep(AppStep.PREVIEW)}
                         className="w-full text-stone-500 text-sm mt-4 hover:text-withered-gold"
