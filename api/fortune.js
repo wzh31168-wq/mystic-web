@@ -32,11 +32,12 @@ export default async function handler(req, res) {
 
     // 5. 构造提示词
     let prompt = SYSTEM_PROMPT_TEMPLATE
-      .replace('{{name}}', userData.name || '缘主')
-      .replace('{{gender}}', userData.gender || '未知')
-      .replace('{{birth_date}}', userData.birthDate || '未知')
-      .replace('{{birth_time}}', userData.birthTime || '')
-      .replace('{{birth_place}}', userData.birthPlace || '');
+      .replace('{{name}}', userData.name)
+      .replace('{{gender}}', userData.gender)
+      .replace('{{birth_date}}', userData.birthDate)
+      .replace('{{birth_time}}', userData.birthTime || '吉時 (時辰不詳)')
+      .replace('{{birth_place}}', userData.birthPlace)
+      .replace('{{inquiry_content}}', userData.inquiryContent || '未指定，請綜觀全局推演');
 
     // 容错处理：确保 planKey 存在
     const planKey = (plan || 'BASIC').toUpperCase();
