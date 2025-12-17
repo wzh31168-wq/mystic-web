@@ -15,7 +15,8 @@ export interface UserData {
   birthDate: string; // YYYY-MM-DD
   birthTime: string; // HH:mm
   birthPlace: string;
-  customQuestion?: string; // For premium
+  inquiryContent?: string; // New field: The general topic or question for the divination
+  customQuestion?: string; // For premium additional specific question
 }
 
 export interface FortuneResult {
