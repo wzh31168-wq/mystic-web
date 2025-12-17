@@ -38,6 +38,7 @@ const App: React.FC = () => {
     birthDate: '',
     birthTime: '',
     birthPlace: '',
+    inquiryContent: '',
     customQuestion: ''
   });
   const [selectedPlan, setSelectedPlan] = useState<PlanLevel>(PlanLevel.STANDARD);
@@ -62,14 +63,15 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setUserData(prev => ({ ...prev, [name]: value }));
   };
 
   const startCalculation = async () => {
-    if (!userData.name || !userData.birthDate || !userData.birthTime) {
-      alert("請填寫完整信息以獲取準確批命");
+    // Modified validation: birthTime is no longer required
+    if (!userData.name || !userData.birthDate) {
+      alert("請填寫姓名與出生日期以獲取準確批命");
       return;
     }
 
@@ -182,7 +184,7 @@ const App: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-withered-gold text-xs mb-2 tracking-widest uppercase">時辰</label>
+                  <label className="block text-withered-gold text-xs mb-2 tracking-widest uppercase">時辰 (選填)</label>
                   <input 
                     type="time" name="birthTime" value={userData.birthTime} onChange={handleInputChange}
                     className="w-full bg-[#051829] border-b border-stone-600 focus:border-withered-gold outline-none p-3 text-stone-300"
@@ -196,6 +198,15 @@ const App: React.FC = () => {
                   type="text" name="birthPlace" value={userData.birthPlace} onChange={handleInputChange}
                   className="w-full bg-[#051829] border-b border-stone-600 focus:border-withered-gold outline-none p-3 text-stone-300 text-center"
                   placeholder="例如：中國上海、台灣台北"
+                />
+              </div>
+
+              <div>
+                <label className="block text-withered-gold text-xs mb-2 tracking-widest uppercase">所測何事 (選填)</label>
+                <input 
+                  type="text" name="inquiryContent" value={userData.inquiryContent} onChange={handleInputChange}
+                  className="w-full bg-[#051829] border-b border-stone-600 focus:border-withered-gold outline-none p-3 text-stone-300 text-center placeholder-stone-700"
+                  placeholder="例如：近期事業迷茫，想問去留... (留空則測總運)"
                 />
               </div>
 
@@ -285,8 +296,9 @@ const App: React.FC = () => {
                 {selectedPlan === PlanLevel.PREMIUM && (
                      <div className="mb-8">
                         <label className="block text-withered-gold text-sm mb-3 tracking-widest">
-                            <span className="mr-2">❖</span>單事問占 (限一問)
+                            <span className="mr-2">❖</span>VIP 深度追問 (選填)
                         </label>
+                        <p className="text-xs text-stone-500 mb-2">您已填寫過基礎問測意向，此處可補充更具體的細節問題，大師將在最後一章專門起卦解答。</p>
                         <textarea 
                             value={userData.customQuestion || ''} 
                             onChange={(e) => setUserData(prev => ({...prev, customQuestion: e.target.value}))}
